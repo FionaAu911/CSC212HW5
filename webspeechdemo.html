@@ -80,9 +80,14 @@
     padding: 0;
   }
 </style>
+<head">Fiona Au CSC 212 HW 5</head>
 <h1 class="center" id="headline">
   <a href="http://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html">
     Web Speech API</a> Demonstration</h1>
+<p>Choose which task to perform.</p>
+<button id="task_1" onclick="task_1(event)">Task #1</button>
+<button id="task_2" onclick="task_2(event)">Task #2</button>
+<button id="task_3" onclick="task_3(event)">Task #3</button>
 <div id="info">
   <p id="info_start">Click on the microphone icon and begin speaking.</p>
   <p id="info_speak_now">Speak now.</p>
@@ -112,7 +117,7 @@
 </div>
 <div class="center">
   <div>
-    <p id="speedInstructionText">INSERT TEXT HERE</p>
+    <p id="speedInstructionText">Talking speed instruction here</p>
   </div>
   <div class="sidebyside" style="text-align:right">
     <button id="copy_button" class="button" onclick="copyButton()">
@@ -209,6 +214,7 @@ select_language.selectedIndex = 6; // dropdown #1 - default to English
 updateCountry();
 select_dialect.selectedIndex = 6; // dropdown #2 - default to United States
 showInfo('info_start');
+speedInstructionText.style.visibility = 'hidden';
 
 function updateCountry() {
   for (var i = select_dialect.options.length - 1; i >= 0; i--) { // removing all dialects for the previous language (restart)
@@ -226,23 +232,58 @@ var create_email = false;
 var final_transcript = '';
 var recognizing = false;
 var ignore_onend;
+
+// task #1
 var start_timestamp;
 var blackWordCount = 0; // the number of times that a line of text turns into black
 var grayIndexCount = 0; // the number of times the computer chooses a word/phrase to be what it thinks user is saying. the number of grayIndexCount is the number of tries it took to get the word/phrase right
 var startTime;
 var endTime;
 var speedInstruction = '';
-if (!('webkitSpeechRecognition' in window)) { // if browser does not support speech recognition, display message to let user know
+
+// task #2
+var phoneAgent_transcript = '';
+var response = '';
+var phoneAgent_greeting = new SpeechSynthesisUtterance('Hello, thank you for contacting Verizon. Please state the purpose of your call today. You may say Account Information, Technical Support, or Product Information.');
+var phoneAgent_accountInformation = new SpeechSynthesisUtterance('You have selected Account Information. You may check you balance by saying Check Balance or pay your balance by saying Pay Balance. Please make your selection now');
+var phoneAgent_accountInformation_checkBalance = new SpeechSynthesisUtterance('Your balance is $329.82. To pay your balance, say Pay Balance.');
+var phoneAgent_accountInformation_payBalance = new SpeechSynthesisUtterance('You will pay your balance of $329.82. To continue, with this process, say Payment Process');
+var phoneAgent_accountInformation_paymentProcess = new SpeechSynthesisUtterance('Thank you. We will begin the payment process.');
+var phoneAgent_accountInformation_paymentProcess_creditCard = new SpeechSynthesisUtterance('Please list the digits of your credit card.');
+var phoneAgent_accountInformation_paymentProcess_expirationDate = new SpeechSynthesisUtterance('Please say the expiration date of your credit card.');
+var phoneAgent_accountInformation_paymentProcess_securityCode = new SpeechSynthesisUtterance('Please say the 3 digit security code of your credit card.');
+var phoneAgent_technicalSupport = new SpeechSynthesisUtterance('You have selected Technical Support. Please briefly describe your problem.');
+var phoneAgent_technicalSupport_turnOffOnSuggestion = new SpeechSynthesisUtterance('Have you tried turning the device off and on?');
+var phoneAgent_technicalSupport_turnOffOnSuggestion_yes = new SpeechSynthesisUtterance('We will connect you with the next available agent.');
+var phoneAgent_technicalSupport_turnOffOnSuggestion_no = new SpeechSynthesisUtterance('Try turning it off and on. Say done when you are done turning it off and on.');
+var phoneAgent_technicalSupport_turnOffOnSuggestion_didItWork = new SpeechSynthesisUtterance('Did it work?');
+var phoneAgent_technicalSupport_turnOffOnSuggestion_didItWork_yes = new SpeechSynthesisUtterance('I am glad I could help. Have a nice day.');
+var phoneAgent_technicalSupport_turnOffOnSuggestion_didItWork_no = new SpeechSynthesisUtterance('We will connect you the the next available agent.');
+var phoneAgent_productInformation = new SpeechSynthesisUtterance('We have several available products. We have iPhone, Samsung phone, and LG phone. Select the product you want to purchase.');
+var phoneAgent_productInformation_exists = new SpeechSynthesisUtterance('You have chosen one of our products.');
+var phoneAgent_productInformation_doesNotExist = new SpeechSynthesisUtterance('You have not chosen one of our products. Please choose from iPhone, Samsung phone, and LG phone. State the product you want to purchase.');
+var phoneAgent_unableToHelp = new SpeechSynthesisUtterance('It seems like I am unable to help you. I will connect you the the next available agent. Please wait.');
+
+if (!('webkitSpeechRecognition' in window) || !('speechSynthesis' in window)) { // if browser does not support speech recognition, display message to let user know
   upgrade();
 } else {
   start_button.style.display = 'inline-block';
-  speedInstructionText.style.visibility = 'hidden';
   var recognition = new webkitSpeechRecognition();
+  var synthesis = window.speechSynthesis;
+  var langRegex = /^en(-[a-z]{2})?$/i; // regex to match all English language tags e.g en, en-US, en-GB
+  var voices = synthesis.getVoices().filter((voice) => langRegex.test(voice.lang)); // get the available voices and filter the list to only have English speakers
+  var voice = synthesis.getVoices().filter(function (voice) {
+    return voice.lang === 'en';
+  })[0]; // get the first en language voice in the list
   recognition.continuous = true; // have recognition continue even when user stops speaking
   recognition.interimResults = true; // we get early interim results that might change
   // text starts off as gray, so it can be changed based on what the computer is recognizing and synthesizing
   // once the computer knows it will not change the text again, the text will become black
-
+  var utterance = new SpeechSynthesisUtterance('hello world'); // Create an utterance object
+  utterance.voice = voice;
+  utterance.pitch = 1.5;
+  utterance.rate = 1.0;
+  utterance.volume = 1.0;
   recognition.onstart = function() { // triggered when user presses mic button
     recognizing = true;
     showInfo('info_speak_now');
@@ -298,9 +339,8 @@ if (!('webkitSpeechRecognition' in window)) { // if browser does not support spe
     for (var i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) { // if black text
         final_transcript += event.results[i][0].transcript; // final_transcript is a global variable
-        blackWordCount = countWordsInString(final_transcript);
         endTime = new Date();
-        evaluateSpeed(blackWordCount);
+        evaluateSpeed(countWordsInString(final_transcript));
       } else { // if gray text
         interim_transcript += event.results[i][0].transcript; // interim_transcript is a local variable
       }
@@ -364,10 +404,29 @@ function emailButton() {
   showInfo('');
 }
 
-function startButton(event) { // user presses start button
+function startButton(event) { // user presses start button; essentially used as play and pause
   if (recognizing) { // if it is already recognizing, it means the user has pressed it to turn off the mic
     recognition.stop();
     return;
+  } else {
+    recognition.start();
+  }
+  // final_transcript = '';
+  // recognition.lang = select_dialect.value;
+  // recognition.start();
+  // startTime = new Date();
+  // ignore_onend = false;
+  // final_span.innerHTML = '';
+  // interim_span.innerHTML = '';
+  // start_img.src = 'mic-slash.gif';
+  // showInfo('info_allow');
+  // showButtons('none');
+  // start_timestamp = event.timeStamp;
+}
+
+function task_1(event) {
+  if (recognizing) {
+    recognition.stop();
   }
   final_transcript = '';
   recognition.lang = select_dialect.value;
@@ -380,6 +439,26 @@ function startButton(event) { // user presses start button
   showInfo('info_allow');
   showButtons('none');
   start_timestamp = event.timeStamp;
+  speedInstructionText.style.visibility = 'visible';
+}
+
+function task_2(event) {
+  if (recognizing) {
+    recognition.stop();
+  }
+  speedInstructionText.style.visibility = 'hidden';
+  final_transcript = '';
+  recognition.lang = select_dialect.value;
+  ignore_onend = false;
+  final_span.innerHTML = '';
+  interim_span.innerHTML = '';
+  start_img.src = 'mic-slash.gif';
+  showInfo('info_allow');
+  showButtons('none');
+  console.log('task 2');
+  recognition.start();
+  synthesis.speak(phoneAgent_greeting);
+  
 }
 
 function showInfo(s) {
@@ -418,7 +497,7 @@ function evaluateSpeed(wordCount) {
   var elapsedSeconds = elapsedMilliseconds/1000;
   var elapsedMinutes = elapsedSeconds/60;
   var wordsPerMinute = Math.round(wordCount/elapsedMinutes);
-  console.log('words per minute: ' + wordsPerMinute);
+  // console.log('words per minute: ' + wordsPerMinute);
   if (wordsPerMinute < 133) {
     speedInstruction = 'Too slow. You are speaking at ' + wordsPerMinute + ' words per minute.'
   } else if (wordsPerMinute > 188) {
@@ -428,10 +507,10 @@ function evaluateSpeed(wordCount) {
   }
   const useThis = document.getElementById('speedInstructionText');
   useThis.textContent = speedInstruction;
-  console.log('useThis: ' + useThis);
+  // console.log('useThis: ' + useThis);
   // setTimeout(() => 10000000000);
-  speedInstructionText.style.visibility = 'visible';
-  console.log(speedInstruction);
+  // speedInstructionText.style.visibility = 'visible';
+  // console.log(speedInstruction);
 }
 
 </script>
