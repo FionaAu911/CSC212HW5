@@ -244,6 +244,7 @@ var speedInstruction = '';
 // task #2
 var phoneAgent_transcript = '';
 var response = '';
+var listenForResponse = 0;
 var phoneAgent_greeting = new SpeechSynthesisUtterance('Hello, thank you for contacting Verizon. Please state the purpose of your call today. You may say Account Information, Technical Support, or Product Information.');
 var phoneAgent_accountInformation = new SpeechSynthesisUtterance('You have selected Account Information. You may check you balance by saying Check Balance or pay your balance by saying Pay Balance. Please make your selection now');
 var phoneAgent_accountInformation_checkBalance = new SpeechSynthesisUtterance('Your balance is $329.82. To pay your balance, say Pay Balance.');
@@ -458,7 +459,9 @@ function task_2(event) {
   console.log('task 2');
   recognition.start();
   synthesis.speak(phoneAgent_greeting);
-  
+  phoneAgent_greeting.onend = (event) => {
+    console.log('task 2');
+  }
 }
 
 function showInfo(s) {
