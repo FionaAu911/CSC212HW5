@@ -337,9 +337,12 @@ if (!('webkitSpeechRecognition' in window) || !('speechSynthesis' in window)) { 
 
   recognition.onresult = function(event) { // for each line of results (black or gray text), it calls this function
     var interim_transcript = '';
+    var cannotUnderstandCount = 0;
+    var temp_response = '';
     for (var i = event.resultIndex; i < event.results.length; ++i) {
       if (event.results[i].isFinal) { // if black text
         final_transcript += event.results[i][0].transcript; // final_transcript is a global variable
+        temp_response += event.results[i][0].transcript; // final_transcript is a global variable
         endTime = new Date();
         evaluateSpeed(countWordsInString(final_transcript));
       } else { // if gray text
@@ -351,6 +354,13 @@ if (!('webkitSpeechRecognition' in window) || !('speechSynthesis' in window)) { 
     final_span.innerHTML = linebreak(final_transcript);
     interim_span.innerHTML = linebreak(interim_transcript);
     if (final_transcript || interim_transcript) {
+      if (listenForResponse == 0) {
+        listenForResponse = 1;
+        temp_final_transcript = '';
+      } else {
+        response = temo_reponse;
+        listenForResponse = 0;
+      }
       showButtons('inline-block');
     }
   };
